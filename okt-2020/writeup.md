@@ -1,0 +1,7 @@
+# writeup
+
+Filen innehåller ett 64MiB stort FAT32 filsystem. <https://en.wikipedia.org/wiki/Design_of_the_FAT_file_system> kommer vara användbart här. Filsystemet innehåller två filer, `Untitled.png` och `flag.zip`. Alla andra clusters i filsystemet är fyllda med nollor. De clusters som har filerna ligger i slumpad ordning, alltså är filsystemet väldigt fragmenterat. FAT är corruptat genom att ta bort allt relevant till zipfilen från den delen av filsystemet, vilket gör att `Untitled.png` fortfarande går att öppna men `flag.zip` kastar error. Detta är för att vi inte längre vet vart i filsystemet och i vilken ordning alla delar av zipfilen ligger.
+
+Iden var att lösningen skulle gå ungefär så här:
+
+Först testa `mount`a filsystemet som visar att det funkar och det finns två filer. Bilden går att läsa av men när man försöker läsa zipen får man I/O error. Sen använd en hex editor för att inspektera FAT32 filsystemet för att se vad som kan vara fel. Märk att FAT (det segmentet i FAT32 filsystemet som säger på vilka sektorer på disken filerna faktiskt sitter på, och i vilken ordning i fall att de är fragmenterade) innehåller bara data om bilden men inte zipfilen, vilket betyder att filsystemet inte vet vart zipen ligger. Genom att kolla igenom de sektorer med data som inte tillhör `Untitled.png` filen (finns 6) ser vi att alla skulle kunna vara en komprimerad zip fil. Vi kan därför ta ut de 6 delar av filen och försöka unzippa den i alla 720 permutationer av fildelarna för att få ut flaggan ur zipfilen.
